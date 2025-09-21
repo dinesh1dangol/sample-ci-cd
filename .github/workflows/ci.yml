@@ -1,18 +1,20 @@
-name: CI
+name: CI (Dockerized)
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  build:
+  docker-build-test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-      - run: cd backend && npm install && npm test
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t sample-backend-test ./backend
+
+      - name: Run tests inside Docker
+        run: docker run --rm sample-backend-test
 
