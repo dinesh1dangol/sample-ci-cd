@@ -14,3 +14,5 @@ COPY . .
 # Default command
 CMD ["npm", "test"]
 
+CMD ["node", "index.js"]
+
