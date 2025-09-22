@@ -1,0 +1,45 @@
+name: CD (Deploy Backend)
+
+on:
+  push:
+    branches: [ main, development ]
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install SSH client
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
+
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy backend on remote server
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+        run: |
+          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST bash -s <<'EOF'
+            # Log in to GHCR
+            echo $GHCR_PAT | docker login ghcr.io -u $SSH_USER --password-stdin
+
+            # Pull latest backend image
+            docker pull ghcr.io/dinesh1dangol/sample-ci-cd/backend:latest
+
+            # Stop and remove old container if exists
+            if [ $(docker ps -q -f name=sample-ci-cd-backend) ]; then
+              docker stop sample-ci-cd-backend
+              docker rm sample-ci-cd-backend
+            fi
+
+            # Run the new container
+            docker run -d --name sample-ci-cd-backend -p 4000:4000 ghcr.io/dinesh1dangol/sample-ci-cd/backend:latest
+          EOF
+
