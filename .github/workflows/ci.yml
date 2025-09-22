@@ -16,5 +16,5 @@ jobs:
         run: docker build -t sample-backend-test ./backend
 
       - name: Run tests inside Docker
-        run: docker run --rm sample-backend-test
+        run: docker run --rm sample-backend-test npm test
 
